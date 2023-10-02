@@ -61,6 +61,22 @@ services:
     networks:
       - sonarnet
 
+  jenkins-agent:
+    image: jenkins/inbound-agent:latest
+    container_name: jenkins-agent
+    restart: always
+    environment:
+      JENKINS_URL: http://jenkins:8080/
+      JENKINS_AGENT_NAME: main-agent
+      JENKINS_SECRET: 0bbaf1270f27fcc437d0d8a305ec9b58a81afe9ab7634dbc0942ea999f8a9177
+      JENKINS_AGENT_WORKDIR: /home/jenkins/agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - sonarnet
+    depends_on:
+      - jenkins
+
 networks:
   sonarnet:
 
