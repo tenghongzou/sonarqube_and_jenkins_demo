@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 
 services:
   sonarqube:
@@ -26,7 +26,6 @@ services:
       POSTGRES_USER: sonar
       POSTGRES_PASSWORD: sonar
     volumes:
-      - postgresql:/var/lib/postgresql
       - postgresql_data:/var/lib/postgresql/data
     networks:
       - sonarnet
@@ -35,6 +34,8 @@ services:
     image: nginx:alpine
     container_name: nginx
     restart: always
+    depends_on:
+      - sonarqube
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/services:/etc/nginx/services
@@ -43,8 +44,6 @@ services:
       - "80:80"
     networks:
       - sonarnet
-    depends_on:
-      - sonarqube
 
 networks:
   sonarnet:
@@ -53,5 +52,4 @@ volumes:
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
-  postgresql:
   postgresql_data:
