@@ -47,6 +47,20 @@ services:
     networks:
       - sonarnet
 
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    restart: always
+    expose:
+      - "8080:8080"
+    ports:
+      - "50000:50000"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - sonarnet
+
 networks:
   sonarnet:
 
@@ -55,3 +69,4 @@ volumes:
   sonarqube_extensions:
   sonarqube_logs:
   postgresql_data:
+  jenkins_data:
