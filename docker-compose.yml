@@ -5,6 +5,8 @@ services:
     image: sonarqube:community
     container_name: sonarqube
     restart: always
+    expose:
+      - "9000"
     depends_on:
       - db
     environment:
@@ -34,14 +36,14 @@ services:
     image: nginx:alpine
     container_name: nginx
     restart: always
+    ports:
+      - "80:80"
     depends_on:
       - sonarqube
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/services:/etc/nginx/services
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "80:80"
     networks:
       - sonarnet
 
