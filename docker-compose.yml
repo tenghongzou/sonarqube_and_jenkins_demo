@@ -80,6 +80,7 @@ services:
 networks:
   sonarnet:
 
+
 volumes:
   sonarqube_data:
   sonarqube_extensions:
