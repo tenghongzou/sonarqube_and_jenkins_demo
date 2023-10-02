@@ -3,6 +3,8 @@ version: "3"
 services:
   sonarqube:
     image: sonarqube:community
+    container_name: sonarqube
+    restart: always
     depends_on:
       - db
     environment:
@@ -18,6 +20,8 @@ services:
 
   db:
     image: postgres:16
+    container_name: postgres
+    restart: always
     environment:
       POSTGRES_USER: sonar
       POSTGRES_PASSWORD: sonar
@@ -29,6 +33,8 @@ services:
 
   nginx:
     image: nginx:alpine
+    container_name: nginx
+    restart: always
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/services:/etc/nginx/services
