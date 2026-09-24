@@ -1,8 +1,6 @@
-version: "3.7"
-
 services:
   sonarqube:
-    image: sonarqube:community
+    image: sonarqube:26.9.0.129388-community
     container_name: sonarqube
     restart: always
     expose:
@@ -11,8 +9,8 @@ services:
       - db
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
-      SONAR_JDBC_USERNAME: sonar
-      SONAR_JDBC_PASSWORD: sonar
+      SONAR_JDBC_USERNAME: ${POSTGRES_USER:?請在 .env 設定 POSTGRES_USER}
+      SONAR_JDBC_PASSWORD: ${POSTGRES_PASSWORD:?請在 .env 設定 POSTGRES_PASSWORD}
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
@@ -21,40 +19,45 @@ services:
       - sonarnet
 
   db:
-    image: postgres:16
+    image: postgres:16.15
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER: sonar
-      POSTGRES_PASSWORD: sonar
+      POSTGRES_USER: ${POSTGRES_USER:?請在 .env 設定 POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?請在 .env 設定 POSTGRES_PASSWORD}
+      POSTGRES_DB: sonar
     volumes:
       - postgresql_data:/var/lib/postgresql/data
     networks:
       - sonarnet
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.30.5-alpine
     container_name: nginx
     restart: always
     ports:
       - "80:80"
     depends_on:
       - sonarqube
+      - jenkins
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/services:/etc/nginx/services
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/services:/etc/nginx/services:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - sonarnet
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build: ./jenkins
+    image: sonarqube-demo/jenkins:2.568.3-lts-jdk21
     container_name: jenkins
     restart: always
     expose:
-      - "8080:8080"
+      - "8080"
     ports:
       - "50000:50000"
+    group_add:
+      - "${DOCKER_GID:-0}"
     volumes:
       - jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
@@ -62,15 +65,19 @@ services:
       - sonarnet
 
   jenkins-agent:
-    image: jenkins/inbound-agent:latest
+    build: ./jenkins-agent
+    image: sonarqube-demo/jenkins-agent:3391.va_37fa_a_305d6d-3-jdk21
     container_name: jenkins-agent
     restart: always
     environment:
       JENKINS_URL: http://jenkins:8080/
-      JENKINS_AGENT_NAME: main-agent
-      JENKINS_SECRET: 0bbaf1270f27fcc437d0d8a305ec9b58a81afe9ab7634dbc0942ea999f8a9177
+      JENKINS_AGENT_NAME: ${JENKINS_AGENT_NAME:-main-agent}
+      JENKINS_SECRET: ${JENKINS_AGENT_SECRET:?請在 .env 設定 JENKINS_AGENT_SECRET}
       JENKINS_AGENT_WORKDIR: /home/jenkins/agent
+    group_add:
+      - "${DOCKER_GID:-0}"
     volumes:
+      - jenkins_agent_data:/home/jenkins/agent
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - sonarnet
@@ -87,3 +94,4 @@ volumes:
   sonarqube_logs:
   postgresql_data:
   jenkins_data:
+  jenkins_agent_data:

@@ -1,2 +1,5 @@
 # PhpStorm-Project
 /.idea
+
+# 環境變數（含密碼、secret）
+.env
